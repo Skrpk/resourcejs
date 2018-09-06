@@ -1,0 +1,80 @@
+{
+  "_args": [
+    [
+      "resourcejs@1.24.1",
+      "/home/vskripka/Documents/projects/job-projects/formio_jsbackend"
+    ]
+  ],
+  "_from": "resourcejs@1.24.1",
+  "_id": "resourcejs@1.24.1",
+  "_inBundle": false,
+  "_integrity": "sha512-o/gDxiag4bvkMlyLL4EGqJQsBwdyAr9q0k/e22H8FwgaxXOqtR+SWIeh2qHCt7UoBOaEcIPvkyDUVSeXQQ6RQw==",
+  "_location": "/resourcejs",
+  "_phantomChildren": {
+    "bson": "1.0.9",
+    "require_optional": "1.0.1",
+    "saslprep": "1.0.0"
+  },
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "resourcejs@1.24.1",
+    "name": "resourcejs",
+    "escapedName": "resourcejs",
+    "rawSpec": "1.24.1",
+    "saveSpec": null,
+    "fetchSpec": "1.24.1"
+  },
+  "_requiredBy": [
+    "/",
+    "/formio"
+  ],
+  "_resolved": "https://registry.npmjs.org/resourcejs/-/resourcejs-1.24.1.tgz",
+  "_spec": "1.24.1",
+  "_where": "/home/vskripka/Documents/projects/job-projects/formio_jsbackend",
+  "author": {
+    "name": "Travis Tidwell"
+  },
+  "bugs": {
+    "url": "https://github.com/travist/resourcejs/issues"
+  },
+  "dependencies": {
+    "composable-middleware": "^0.3.0",
+    "debug": "^3.1.0",
+    "fast-json-patch": "^2.0.6",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.2",
+    "mongodb": "^3.1.1",
+    "node-paginate-anything": "^1.0.0"
+  },
+  "description": "A simple Express library to reflect Mongoose models to a REST interface.",
+  "devDependencies": {
+    "body-parser": "^1.18.3",
+    "chance": "^1.0.16",
+    "eslint": "^5.1.0",
+    "eslint-config-formio": "^1.1.4",
+    "express": "^4.16.3",
+    "mocha": "^5.2.0",
+    "mongoose": "^5.2.3",
+    "supertest": "^3.1.0"
+  },
+  "homepage": "https://github.com/travist/resourcejs",
+  "keywords": [
+    "Express",
+    "Mongoose",
+    "Node",
+    "MEAN"
+  ],
+  "license": "MIT",
+  "main": "Resource.js",
+  "name": "resourcejs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/travist/resourcejs.git"
+  },
+  "scripts": {
+    "lint": "eslint Resource.js",
+    "test": "mocha test/test.js -b -t 30000 --exit"
+  },
+  "version": "1.24.1"
+}
