@@ -556,7 +556,7 @@ class Resource {
       const query = req.modelQuery || req.model || this.model;
       const search = { '_id': req.params[`${this.name}Id`] };
 
-      if (!req.skipRetrieving) {
+      if (req.skipRetrieving) {
         options.hooks.get.before.call(
           this,
           req,
