@@ -557,34 +557,19 @@ class Resource {
         req,
         res,
         search,
-        (() => {
+        query.findOne.bind(query, search, (err, item) => {
+          if (err) return this.setResponse.call(this, res, { status: 500, error: err }, next);
+          if (!item) return this.setResponse.call(this, res, { status: 404 }, next);
+
           return options.hooks.get.after.call(
             this,
             req,
             res,
-            {},
-            this.setResponse.bind(this, res, res.resource, next)
+            item,
+            this.setResponse.bind(this, res, { status: 200, item: item }, next)
           );
-        }).bind(query))
-
-      // options.hooks.get.before.call(
-      //   this,
-      //   req,
-      //   res,
-      //   search,
-      //   query.findOne.bind(query, search, (err, item) => {
-      //     if (err) return this.setResponse.call(this, res, { status: 500, error: err }, next);
-      //     if (!item) return this.setResponse.call(this, res, { status: 404 }, next);
-
-      //     return options.hooks.get.after.call(
-      //       this,
-      //       req,
-      //       res,
-      //       item,
-      //       this.setResponse.bind(this, res, { status: 200, item: item }, next)
-      //     );
-      //   })
-      // );
+        })
+      );
     }, this.respond.bind(this), options);
     return this;
   }
@@ -636,31 +621,22 @@ class Resource {
         req,
         res,
         req.body,
-        (() => {
+        model.save.bind(model, (err, item) => {
+          if (err) {
+            debug.post(err);
+            return this.setResponse.call(this, res, { status: 400, error: err }, next);
+          }
+
+          debug.post(item);
+          // Trigger any after hooks before responding.
           return options.hooks.post.after.call(
             this,
             req,
             res,
-            {},
-            this.setResponse.bind(this, res, res.resource, next)
+            item,
+            this.setResponse.bind(this, res, { status: 201, item }, next)
           );
-        }).bind(model)
-        // model.save.bind(model, (err, item) => {
-        //   if (err) {
-        //     debug.post(err);
-        //     return this.setResponse.call(this, res, { status: 400, error: err }, next);
-        //   }
-
-        //   debug.post(item);
-        //   // Trigger any after hooks before responding.
-        //   return options.hooks.post.after.call(
-        //     this,
-        //     req,
-        //     res,
-        //     item,
-        //     this.setResponse.bind(this, res, { status: 201, item }, next)
-        //   );
-        // })
+        })
       );
     }, this.respond.bind(this), options);
     return this;
@@ -685,48 +661,39 @@ class Resource {
       const update = _.omit(req.body, '__v');
       const query = req.modelQuery || req.model || this.model;
 
-      options.hooks.put.after.call(
-        this,
-        req,
-        res,
-        {},
-        this.setResponse.bind(this, res, res.resource, next)
-      );
+      query.findOne({ _id: req.params[`${this.name}Id`] }, (err, item) => {
+        if (err) {
+          debug.put(err);
+          return this.setResponse.call(this, res, { status: 500, error: err }, next);
+        }
+        if (!item) {
+          debug.put(`No ${this.name} found with ${this.name}Id: ${req.params[`${this.name}Id`]}`);
+          return this.setResponse.call(this, res, { status: 404 }, next);
+        }
 
-      // query.findOne({ _id: req.params[`${this.name}Id`] }, (err, item) => {
-      //   if (err) {
-      //     debug.put(err);
-      //     return this.setResponse.call(this, res, { status: 500, error: err }, next);
-      //   }
-      //   if (!item) {
-      //     debug.put(`No ${this.name} found with ${this.name}Id: ${req.params[`${this.name}Id`]}`);
-      //     return this.setResponse.call(this, res, { status: 404 }, next);
-      //   }
+        item.set(update);
+        options.hooks.put.before.call(
+          this,
+          req,
+          res,
+          item,
+          item.save.bind(item, (err, item) => {
+            if (err) {
+              debug.put(err);
+              return this.setResponse.call(this, res, { status: 400, error: err }, next);
+            }
 
-      //   item.set(update);
-      //   options.hooks.put.before.call(
-      //     this,
-      //     req,
-      //     res,
-      //     item,
-      //     item.save.bind(item, (err, item) => {
-      //       if (err) {
-      //         debug.put(err);
-      //         return this.setResponse.call(this, res, { status: 400, error: err }, next);
-      //       }
-
-      //       debug.put(JSON.stringify(item));
-      //       return options.hooks.put.after.call(
-      //         this,
-      //         req,
-      //         res,
-      //         item,
-      //         this.setResponse.bind(this, res, { status: 200, item }, next)
-      //       );
-      //     })
-      //   );
-      // });
-
+            debug.put(JSON.stringify(item));
+            return options.hooks.put.after.call(
+              this,
+              req,
+              res,
+              item,
+              this.setResponse.bind(this, res, { status: 200, item }, next)
+            );
+          })
+        );
+      });
     }, this.respond.bind(this), options);
     return this;
   }
