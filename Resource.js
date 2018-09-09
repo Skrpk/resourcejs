@@ -507,7 +507,7 @@ class Resource {
           this,
           req,
           res,
-          findQuery,
+          findQuery, // %%%
           () => this.indexQuery(queryExec, query.pipeline).exec((err, items) => {
             if (err) {
               debug.index(err);
@@ -527,7 +527,11 @@ class Resource {
               req,
               res,
               items,
-              this.setResponse.bind(this, res, { status: res.statusCode, item: items }, next)
+              // this.setResponse.bind(this, res, { status: res.statusCode, item: items }, next)
+              this.setResponse.bind(this, res, { status: 200, item: {
+                form: {},
+                roles: {}
+              } }, next)
             );
           })
         );
@@ -552,24 +556,41 @@ class Resource {
       const query = req.modelQuery || req.model || this.model;
       const search = { '_id': req.params[`${this.name}Id`] };
 
-      options.hooks.get.before.call(
-        this,
-        req,
-        res,
-        search,
-        query.findOne.bind(query, search, (err, item) => {
-          if (err) return this.setResponse.call(this, res, { status: 500, error: err }, next);
-          if (!item) return this.setResponse.call(this, res, { status: 404 }, next);
-
-          return options.hooks.get.after.call(
-            this,
-            req,
-            res,
-            item,
-            this.setResponse.bind(this, res, { status: 200, item: item }, next)
-          );
-        })
-      );
+      if (!req.skipRetrieving) {
+        options.hooks.get.before.call(
+          this,
+          req,
+          res,
+          search,
+          (() => {
+            return options.hooks.get.after.call(
+              this,
+              req,
+              res,
+              {},
+              this.setResponse.bind(this, res, { status: 200, item: {} }, next)
+            );
+          }).bind(query));
+      } else {
+        options.hooks.get.before.call(
+          this,
+          req,
+          res,
+          search,
+          query.findOne.bind(query, search, (err, item) => {
+            if (err) return this.setResponse.call(this, res, { status: 500, error: err }, next);
+            if (!item) return this.setResponse.call(this, res, { status: 404 }, next);
+  
+            return options.hooks.get.after.call(
+              this,
+              req,
+              res,
+              item,
+              this.setResponse.bind(this, res, { status: 200, item: item }, next)
+            );
+          })
+        );
+      }
     }, this.respond.bind(this), options);
     return this;
   }
@@ -661,6 +682,14 @@ class Resource {
       const update = _.omit(req.body, '__v');
       const query = req.modelQuery || req.model || this.model;
 
+      // options.hooks.put.after.call(
+      //   this,
+      //   req,
+      //   res,
+      //   {},
+      //   this.setResponse.bind(this, res, res.resource, next)
+      // );
+
       query.findOne({ _id: req.params[`${this.name}Id`] }, (err, item) => {
         if (err) {
           debug.put(err);
@@ -694,6 +723,7 @@ class Resource {
           })
         );
       });
+
     }, this.respond.bind(this), options);
     return this;
   }
