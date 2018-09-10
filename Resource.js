@@ -527,11 +527,11 @@ class Resource {
               req,
               res,
               items,
-              // this.setResponse.bind(this, res, { status: res.statusCode, item: items }, next)
-              this.setResponse.bind(this, res, { status: 200, item: {
-                form: {},
-                roles: {}
-              } }, next)
+              this.setResponse.bind(this, res, res.resource, next)
+              // this.setResponse.bind(this, res, { status: 200, item: {
+              //   form: {},
+              //   roles: {}
+              // } }, next)
             );
           })
         );
@@ -556,41 +556,67 @@ class Resource {
       const query = req.modelQuery || req.model || this.model;
       const search = { '_id': req.params[`${this.name}Id`] };
 
-      if (req.skipRetrieving) {
-        options.hooks.get.before.call(
-          this,
-          req,
-          res,
-          search,
-          (() => {
-            return options.hooks.get.after.call(
-              this,
-              req,
-              res,
-              {},
-              this.setResponse.bind(this, res, { status: 200, item: {} }, next)
-            );
-          }).bind(query));
-      } else {
-        options.hooks.get.before.call(
-          this,
-          req,
-          res,
-          search,
-          query.findOne.bind(query, search, (err, item) => {
-            if (err) return this.setResponse.call(this, res, { status: 500, error: err }, next);
-            if (!item) return this.setResponse.call(this, res, { status: 404 }, next);
+
+      options.hooks.get.before.call(
+        this,
+        req,
+        res,
+        search,
+        query.findOne.bind(query, search, (err, item) => {
+          if (err) return this.setResponse.call(this, res, { status: 500, error: err }, next);
+          // if (!item) return this.setResponse.call(this, res, { status: 404 }, next);
+
+          // RULE 1
+          if (item && !res.resource) {
+            res.resource = { status: 200, item };
+          }
+          return options.hooks.get.after.call(
+            this,
+            req,
+            res,
+            item,
+            this.setResponse.bind(this, res, res.resource, next)
+          );
+        })
+      );
+
+      // RULE: Remove later this check and leave only first statement
+      // if (req.skipRetrieving) {
+      //   options.hooks.get.before.call(
+      //     this,
+      //     req,
+      //     res,
+      //     search,
+      //     (() => {
+      //       return options.hooks.get.after.call(
+      //         this,
+      //         req,
+      //         res,
+      //         {},
+      //         this.setResponse.bind(this, res, { status: 200, item: {} }, next)
+      //       );
+      //     }).bind(query));
+      // } else {
+      //   options.hooks.get.before.call(
+      //     this,
+      //     req,
+      //     res,
+      //     search,
+      //     query.findOne.bind(query, search, (err, item) => {
+      //       if (err) return this.setResponse.call(this, res, { status: 500, error: err }, next);
+      //       if (!item) return this.setResponse.call(this, res, { status: 404 }, next);
   
-            return options.hooks.get.after.call(
-              this,
-              req,
-              res,
-              item,
-              this.setResponse.bind(this, res, { status: 200, item: item }, next)
-            );
-          })
-        );
-      }
+      //       return options.hooks.get.after.call(
+      //         this,
+      //         req,
+      //         res,
+      //         item,
+      //         this.setResponse.bind(this, res, { status: 200, item: item }, next)
+      //       );
+      //     })
+      //   );
+        
+      // }
     }, this.respond.bind(this), options);
     return this;
   }
