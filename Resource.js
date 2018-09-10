@@ -521,6 +521,10 @@ class Resource {
               return this.setResponse.call(this, res, { status: 500, error: err }, next);
             }
 
+            // RULE костыль для Role
+            if (!res.resource) {
+              res.resource = { status: 200, item: items };
+            }
             debug.index(items);
             options.hooks.index.after.call(
               this,
